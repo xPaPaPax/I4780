@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<style>
+
+
+</style>
+</head>
+
+<body> 
+<div style="position:absolute; background:pink; margin-left:5%;width:90%">
+  <center>
+    Homework1 - Xmas tree<br>
+    <button id="switch" style="width:110px;height:34px;font-size:20px;"> Light Off </button>
+    <button id="mode1" style="width:110px;height:34px;font-size:20px;"> Speed Up </button>
+	<button id="mode2" style="width:110px;height:34px;font-size:20px;"> Colorful </button>
+	<button id="reset" style="width:110px;height:34px;font-size:20px;"> Reset </button>
+  </center>
+  <img src="https://i.imgur.com/Q47oMeW.jpg" style="position:absolute;top:5vw;left:25vw;width:40vw;z-index:-1">
+</div>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<script>
+class Light {
+  constructor() {
+    this.h = 100;
+    this.s = 80;
+	this.sec = 500;
+    this.element = document.createElement ('div');
+    this.element.id = 'light';
+    this.element.style.cssText = "position:absolute;width:20px;height:20px;border-radius:15px;z-index:1";
+	this.element.style.top = '7vw';
+    this.element.style.left = '50vw';
+    this.element.style.background = "hsl(89, 80%, 50%)";
+    document.getElementsByTagName('body')[0].appendChild(this.element);
+  }
+  changeColor() {
+    var self = this;
+  	var hue = Math.random() * this.h;
+  	self.element.style.background = "hsl(" + hue + "," + this.s + "%, 50%)";
+    setTimeout (function() { self.changeColor() } , this.sec);
+  }
+}
+
+////////////////////////////////
+var switchStatus = true;
+var lightArray = new Array();
+var lightCount = 20;
+init();
+
+$('#switch').click ( function(){
+  switchStatus = !switchStatus;
+  if (switchStatus === true) {
+  	$('#switch').text('Light Off');
+	lightArray.forEach(function(light) {
+	  light.sec = 500;
+	  light.h = 100;
+	  light.s = 80;
+	})
+  } else {
+  	$('#switch').text('Light On');
+	lightArray.forEach(function(light) {
+	  light.sec = 0;
+	  light.h = 100;
+	  light.s = 0;
+	})
+  }
+});
+
+$('#mode1').click ( function(){
+  lightArray.forEach(function(light) {
+    light.sec = 100;
+  })
+});
+
+$('#mode2').click ( function(){
+  lightArray.forEach(function(light) {
+    light.h = 240;
+  })
+});
+
+$('#reset').click ( function(){
+  lightArray.forEach(function(light) {
+    light.sec = 500;
+	light.h = 100;
+  })
+});
+
+function init() {
+  //                   0       1       2       3       4       5       6       7       8       9       10      11      12      13      14      15      16      17      18      19
+  var lightPosTop  = ['07vw', '18vw', '21vw', '25vw', '27vw', '30vw', '32vw', '34vw', '37vw', '40vw', '43vw', '43vw', '47vw', '48vw', '50vw', '54vw', '57vw', '58vw', '60vw', '62vw'];
+  var lightPosLeft = ['50vw', '45vw', '55vw', '47vw', '53vw', '43vw', '48vw', '56vw', '42vw', '51vw', '59vw', '45vw', '41vw', '47vw', '54vw', '63vw', '39vw', '48vw', '54vw', '60vw'];
+  
+  for(var i = 0; i < lightCount; i++){
+	lightArray[i] = new Light();
+	lightArray[i].element.style.top  = lightPosTop[i];
+    lightArray[i].element.style.left = lightPosLeft[i];
+	lightArray[i].changeColor();
+  }
+}
+
+</script>
+</body>
+
+</html>
