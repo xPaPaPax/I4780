@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<style>
+#info {
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  color: #ffff00
+}
+
+body {
+  overflow: hidden;
+}
+</style>
+</head>
+
+<body> 
+
+<div id="info">
+  <center>
+    Homework2 &nbsp<a href="https://i.imgur.com/0zFCB6n.jpg">設計圖</a><br>
+    <button id="ptlight" style="width:110px;height:34px;font-size:20px;"> Light Off </button>
+	<input type=range min=0 max=1 step=0.1 id='ptlightIntensity'> 場地光亮度 <br>
+	<button id="splight" style="width:110px;height:34px;font-size:20px;"> Light Off </button>
+	<input type=range min=0 max=1 step=0.1 id='splightIntensity'> 美術燈亮度 <br>
+	<button id="views" style="width:110px;height:34px;font-size:20px;"> Camera:0 </button>
+  </center>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/84/three.min.js"></script>
+<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<script>
+var cameraNumber = 5, scene, renderer;
+var cameraArray = new Array();
+var pointLightArray = new Array();
+var spotLightArray = new Array();
+var useCamera1 = 0;
+var ptStatus = true, spStatus = true;;
+
+$('#ptlight').click ( function(){
+  ptStatus = !ptStatus;
+  if (ptStatus === true) {
+  	$('#ptlight').text('Light Off');
+	pointLightArray.forEach(function(light) {
+	  light.intensity = 0.5;
+	})
+  } else {
+  	$('#ptlight').text('Light On');
+	pointLightArray.forEach(function(light) {
+	  light.intensity = 0;
+	})
+  }
+});
+
+$('#splight').click ( function(){
+  spStatus = !spStatus;
+  if (spStatus === true) {
+  	$('#splight').text('Light Off');
+	spotLightArray.forEach(function(splight) {
+	  splight.light.intensity = 0.5;
+	})
+  } else {
+  	$('#splight').text('Light On');
+	spotLightArray.forEach(function(splight) {
+	  splight.light.intensity = 0;
+	})
+  }
+});
+
+$('#ptlightIntensity').change(function() {
+  let x = $(this).val();
+  pointLightArray.forEach(function(light) {
+	  light.intensity = x;
+  })
+})
+
+$('#splightIntensity').change(function() {
+  let x = $(this).val();
+  spotLightArray.forEach(function(splight) {
+	  splight.light.intensity = x;
+  })
+})
+
+$('#views').click ( function(){
+  useCamera1++;
+  $('#views').text('Camera:' + useCamera1 % cameraNumber);
+});
+
+class artSpotLight {
+  constructor(x, z, spotLightIntensity, focusTarget) {
+    //spotlight
+    this.light = new THREE.SpotLight(0xffffff);
+	this.light.intensity = spotLightIntensity;
+	this.light.position.set ( x, 120, z);
+	this.light.angle = 0.68;
+    this.light.penumbra = 0.4;
+	this.light.decay = 1;
+	this.light.target = focusTarget;
+    scene.add (this.light);
+  }
+}
+
+init();
+animate();
+
+function init() {
+  scene = new THREE.Scene();
+  
+  ///////////////////////////////////////////////////////////
+  /*Camera*/
+  cameraArray[0] = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+  cameraArray[0].position.set(0, 300, 400);
+  cameraArray[0].lookAt(new THREE.Vector3(0, 0, 0));
+  
+  cameraArray[1] = new THREE.PerspectiveCamera(60, 1, 1, 1000);
+  cameraArray[1].position.set(-295, 120, 172);
+  cameraArray[1].lookAt(new THREE.Vector3(-110, -70, 0));
+  
+  cameraArray[2] = new THREE.PerspectiveCamera(60, 1, 1, 1000);
+  cameraArray[2].position.set(66, 120, -100);
+  cameraArray[2].lookAt(new THREE.Vector3(300, -70, -100));
+  
+  cameraArray[3] = new THREE.PerspectiveCamera(60, 1, 1, 1000);
+  cameraArray[3].position.set(-105, 120, 170);
+  cameraArray[3].lookAt(new THREE.Vector3(0, 20, 60));
+  
+  cameraArray[4] = new THREE.PerspectiveCamera(60, 1, 1, 1000);
+  cameraArray[4].position.set(295, 120, -30);
+  cameraArray[4].lookAt(new THREE.Vector3(40, 0, 200));
+  
+  ///////////////////////////////////////////////////////////
+  /*Renderer*/
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x888888);
+
+  let controls = new THREE.OrbitControls(cameraArray[0], renderer.domElement);
+
+  document.body.appendChild(renderer.domElement);
+  ///////////////////////////////////////////////////////////
+  /*Gallery*/
+  let loader = new THREE.TextureLoader();
+  loader.crossOrigin = '';
+  let texture = loader.load("https://i.imgur.com/hrvwCR5.jpg");
+  let floor = new THREE.Mesh(new THREE.BoxGeometry(600, 2, 354), new THREE.MeshPhongMaterial({
+    map: texture
+  }));
+  scene.add(floor);
+  floor.position.y = -1;
+  
+  let wall = new THREE.Mesh(new THREE.BoxGeometry(600, 120, 4), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(0, 60, 175);
+  wall = new THREE.Mesh(new THREE.BoxGeometry(4, 120, 350), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(298, 60, -2);
+  wall = new THREE.Mesh(new THREE.BoxGeometry(4, 120, 350), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(-298, 60, -2);
+  wall = new THREE.Mesh(new THREE.BoxGeometry(270, 120, 4), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(-161, 60, -175);
+  wall = new THREE.Mesh(new THREE.BoxGeometry(240, 120, 4), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(180, 60, -175);
+  wall = new THREE.Mesh(new THREE.BoxGeometry(4, 120, 220), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(-108, 60, 63);
+  wall = new THREE.Mesh(new THREE.BoxGeometry(4, 120, 130), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(62, 60, -108);
+  wall = new THREE.Mesh(new THREE.BoxGeometry(120, 120, 4), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(236, 60, -45);
+  
+  let chair;
+  chair = new THREE.Mesh(new THREE.BoxGeometry(80, 30, 30), new THREE.MeshPhongMaterial({color:0x888888}));
+  scene.add(chair);
+  chair.position.set(-205, 15, 113);
+  
+  chair = new THREE.Mesh(new THREE.BoxGeometry(30, 30, 80), new THREE.MeshPhongMaterial({color:0x888888}));
+  scene.add(chair);
+  chair.position.set(226, 15, 68);
+  
+  ///////////////////////////////////////////////////////////
+  /*Light*/
+  //spotlight for art
+  let artTarget;
+  let targetPosX = [300, 300];
+  let targetPosZ = [-110, 70];
+  let spotLightPosX = [250, 250];
+  let spotLightPosZ = [-110, 70];
+  for(i = 0; i < 2; i++) {
+    artTarget = new THREE.Mesh (new THREE.SphereGeometry(5,20,20), new THREE.MeshBasicMaterial({color:'red'}));
+    //artTarget.material.visible = false;
+	scene.add (artTarget);
+    artTarget.position.set (targetPosX[i], 70, targetPosZ[i]);
+    spotLightArray[i] = new artSpotLight(spotLightPosX[i], spotLightPosZ[i], 0.5, artTarget);
+  }
+  
+  //pointlight
+  let lightPosX = [0, -205, 205, 0, -205, 205];
+  let lightPosZ = [120, 120, 120, -120, -120, -120];
+  for(i = 0; i < 6; i++){
+    pointLightArray[i] = new THREE.PointLight(0xffffff, 0.5, 500);
+    pointLightArray[i].position.set(lightPosX[i], 220, lightPosZ[i]);
+    scene.add(pointLightArray[i]);
+  }
+}
+function animate() {
+  requestAnimationFrame(animate);
+  let nowCamera = cameraArray[useCamera1 % cameraNumber];
+  renderer.render(scene, nowCamera);
+}
+</script>
+</body>
+
+</html>
