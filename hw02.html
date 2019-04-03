@@ -93,16 +93,35 @@ $('#views').click ( function(){
 });
 
 class artSpotLight {
-  constructor(x, z, spotLightIntensity, focusTarget) {
+  constructor(x, z, spotLightIntensity, focusTarget, rx, rz) {
     //spotlight
-    this.light = new THREE.SpotLight(0xffffff);
+    this.light = new THREE.SpotLight(0xffbb00);
 	this.light.intensity = spotLightIntensity;
 	this.light.position.set ( x, 120, z);
-	this.light.angle = 0.68;
+	this.light.angle = 0.6;
     this.light.penumbra = 0.4;
+	this.light.distance = 150;
 	this.light.decay = 1;
+	scene.add (this.light);
 	this.light.target = focusTarget;
-    scene.add (this.light);
+	//models
+	this.lightGroup = new THREE.Object3D();
+	let lampshade = new THREE.Mesh(new THREE.CylinderGeometry(2, 3, 6, 32, false, 0), new THREE.MeshPhongMaterial({
+      color: 0x333333,
+      side: THREE.DoubleSide
+    }));
+	lampshade.rotation.x = rx;
+	lampshade.rotation.z = rz;
+	let lampTop = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 0.5, 32), new THREE.MeshPhongMaterial({
+      color: 0x333333,
+      side: THREE.DoubleSide
+    }));
+	lampTop.position.y = 3;
+	lampshade.add(lampTop);
+	
+	this.lightGroup.add(lampshade);
+	this.lightGroup.position.set(x, 120, z);
+	scene.add (this.lightGroup);
   }
 }
 
@@ -183,32 +202,44 @@ function init() {
   chair = new THREE.Mesh(new THREE.BoxGeometry(80, 30, 30), new THREE.MeshPhongMaterial({color:0x888888}));
   scene.add(chair);
   chair.position.set(-205, 15, 113);
-  
   chair = new THREE.Mesh(new THREE.BoxGeometry(30, 30, 80), new THREE.MeshPhongMaterial({color:0x888888}));
   scene.add(chair);
   chair.position.set(226, 15, 68);
   
+  let lightBar = new THREE.Mesh(new THREE.BoxGeometry(600, 1, 1), new THREE.MeshPhongMaterial({color:0x222222}));
+  scene.add(lightBar);
+  lightBar.position.set(0, 124, 70);
+  lightBar = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 354), new THREE.MeshPhongMaterial({color:0x222222}));
+  scene.add(lightBar);
+  lightBar.position.set(-205, 124, 0);
+  lightBar = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 354), new THREE.MeshPhongMaterial({color:0x222222}));
+  scene.add(lightBar);
+  lightBar.position.set(250, 124, 0);
+  
   ///////////////////////////////////////////////////////////
   /*Light*/
   //spotlight for art
-  let artTarget;
-  let targetPosX = [300, 300];
-  let targetPosZ = [-110, 70];
-  let spotLightPosX = [250, 250];
-  let spotLightPosZ = [-110, 70];
-  for(i = 0; i < 2; i++) {
+  let artTarget, targetNum = 7;
+  let targetPosX = [ 300, 300, -108, -300, -205, -205, -108];
+  let targetPosZ = [-110,  70,   70,   70,  177, -177,   70];
+  let spotLightPosX = [ 250, 250, -158, -250, -205, -205, -58];
+  let spotLightPosZ = [-110,  70,   70,   70, 127,  -127,  70];
+  let lampShadeRotX = [        0,         0,         0,         0, -Math.PI/4, Math.PI/4,          0];
+  let lampShadeRotZ = [Math.PI/4, Math.PI/4, Math.PI/4, -Math.PI/4,         0,         0, -Math.PI/4];
+  for(i = 0; i < targetNum; i++) {
     artTarget = new THREE.Mesh (new THREE.SphereGeometry(5,20,20), new THREE.MeshBasicMaterial({color:'red'}));
-    //artTarget.material.visible = false;
+    artTarget.material.visible = false;
 	scene.add (artTarget);
-    artTarget.position.set (targetPosX[i], 70, targetPosZ[i]);
-    spotLightArray[i] = new artSpotLight(spotLightPosX[i], spotLightPosZ[i], 0.5, artTarget);
+    artTarget.position.set (targetPosX[i], 65, targetPosZ[i]);
+    spotLightArray[i] = new artSpotLight(spotLightPosX[i], spotLightPosZ[i], 0.7,
+    	artTarget, lampShadeRotX[i], lampShadeRotZ[i]);
   }
   
   //pointlight
   let lightPosX = [0, -205, 205, 0, -205, 205];
   let lightPosZ = [120, 120, 120, -120, -120, -120];
   for(i = 0; i < 6; i++){
-    pointLightArray[i] = new THREE.PointLight(0xffffff, 0.5, 500);
+    pointLightArray[i] = new THREE.PointLight(0xffffff, 0.4, 500);
     pointLightArray[i].position.set(lightPosX[i], 220, lightPosZ[i]);
     scene.add(pointLightArray[i]);
   }
