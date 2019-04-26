@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<style>
+#container {
+  width: 50vw;
+  height: 50vw;
+  float: left;
+  background-color: #cccccc;
+  margin: 1vw;
+}
+
+#monitorA {
+  width: 28vw;
+  height: 28vw;
+  background-color: #cccccc;
+  margin-right: 1vw;
+  display: inline-block;
+}
+
+#monitorB {
+  width: 28vw;
+  height: 28vw;
+  background-color: #cccccc;
+  margin-right: 1vw;
+  display: inline-block;
+}
+
+#monitorC {
+  width: 28vw;
+  height: 28vw;
+  background-color: #cccccc;
+  margin-right: 1vw;
+  display: inline-block;
+}
+
+p {
+  margin: 10px;
+  text-align: justify;
+}
+
+body {
+  background-color: #cccccc;
+}
+</style>
+</head>
+
+<body>
+<!--HTML-->
+<h1 style="font-size:2em; text-align:center; margin:15px"> 
+The Art Of Dark Souls
+</h1>
+
+<hr>
+<div style="height: 55vw;">
+  <div id="container">
+  <!--canvas id='mycanvas'></canvas-->
+  </div>
+  <!--div id="hw20">
+  <center>
+    <button id="ptlight" style="width:110px;height:34px;font-size:20px;"> Light Off </button>
+    <input type=range min=0 max=1 step=0.1 id='ptlightIntensity'> 場地光亮度 <br>
+    <button id="splight" style="width:110px;height:34px;font-size:20px;"> Light Off </button>
+    <input type=range min=0 max=1 step=0.1 id='splightIntensity'> 美術燈亮度 <br>
+    <button id="views" style="width:110px;height:34px;font-size:20px;"> Camera:0 </button>
+  </center>
+  </div-->
+  <center><img src="https://i.imgur.com/wKLbvl7.png" width="350" height="245"/></center>
+  <select id="selectArt" style="font-size:20px;margin-top:2vw">
+    <option value="0">Free mode</option>
+    <option value="1">Picture 1</option>
+    <option value="2">Picture 2</option>
+    <option value="3">Picture 3</option>
+    <option value="4">Picture 4</option>
+    <option value="5">Picture 5</option>
+    <option value="6">Picture 6</option>
+    <option value="7">Picture 7</option>
+  </select><br>
+  <font style="font-size:35px;margin-top:1vw"><b> Name: </b></font>&nbsp
+  <font id="pictureName" color="red" style="font-size:35px;margin-top:1vw">  </font>
+  <p style="font-size:35px;margin-top:1vw"><b> Information: </b></p>
+  <p id="pictureInfo" style="font-size:23px;"> &nbsp </p>
+  
+</div>
+<div>
+  <hr>
+  <h2 style="font-size:2em; text-align:center; margin:15px"> 
+  Monitor
+  </h2>
+  
+  <center><div>
+    <div id="monitorA">
+	  (a)
+    </div>
+    <div id="monitorB">
+      (b)
+    </div>
+    <div id="monitorC">
+      (c)
+    </div>
+  </div></center>
+  <br>
+  <font size="4.5">About Dark Souls:</font>
+  <p>
+    Dark Souls is an action role-playing game developed by FromSoftware and published by Namco Bandai Games. A spiritual successor to FromSoftware's Demon's Souls, the game is the second installment in the Souls series. It was released for the PlayStation 3 and Xbox 360 in Japan by FromSoftware in September 2011 and worldwide by Namco Bandai Games in the following month. Dark Souls takes place in the fictional kingdom of Lordran, where players assume the role of a cursed undead character who begins a pilgrimage to discover the fate of their kind.
+    Dark Souls received critical acclaim upon its release and is considered to be one of the greatest video games ever made, with critics praising the depth of its combat, intricate level design, and world lore. However, the game's difficulty received mixed reviews. While some praised the challenge it provides, others criticized it for being unnecessarily unforgiving. The original Windows version of the game was less well received, with criticism directed at numerous technical issues.
+  </p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r78/three.min.js"></script>
+<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<script>
+<!--JS-->
+var cameraNumber = 8, scene, renderer;
+var rendererM = new Array();
+var cameraArray = new Array(), cameraMonitor = new Array();
+var pointLightArray = new Array();
+var spotLightArray = new Array();
+var useCamera = 0;
+var ptStatus = true, spStatus = true;
+var mouse = new THREE.Vector2();
+var raycaster = new THREE.Raycaster();
+var pickables = [];
+var artArray = new Array();
+var frameArray = new Array();
+var selectText;
+var keys = [
+  [0, 0], [0.4, 0.6], [0.5, 0.6], [0.9, 0], [1, 0]
+];
+var T = 2;
+var clock = new THREE.Clock();
+var ts = clock.getElapsedTime();
+
+$("#selectArt").change(function(){
+  useCamera = $("#selectArt").val();
+  var informationText;
+  if( $("#selectArt").val() == 0) {
+    $("#pictureName").text("");
+	$("#pictureInfo").text("");
+  }
+  if( $("#selectArt").val() == 1) {
+    $("#pictureName").text("Soul of Cinder");
+	informationText = $("#pictureInfo").text("Soul of Cinder is a Boss enemy in Dark Souls 3."
+	  + " It is the Final Boss of Dark Souls 3."
+	  + " It is seen as the amalgamation of all the Lords of Cinder, with a variety of Dark Dialectics spells and movesets used during its first phase and the use of Gwyn's moveset for the second phase.");
+    informationText.html(informationText.html().replace(/\n/g,'<br/>'));
+  }
+  if( $("#selectArt").val() == 2) {
+    $("#pictureName").text("Ornstein");
+	informationText = $("#pictureInfo").text("Ornstein is believed to be the captain of the Four Knights of Gwyn Lord of Cinder, alongside: Artorias the Abysswalker, "
+	  + " Lord's Blade Ciaran, and Hawkeye Gough. As his name would suggest, he was an honorary dragon slayer."
+      + " He wields his Dragonslayer Spear as well as the power of lightning, and was left behind with Smough to guard Anor Londo's cathedral, when the gods fled.");
+	informationText.html(informationText.html().replace(/\n/g,'<br/>'));
+  }
+  if( $("#selectArt").val() == 3) {
+    $("#pictureName").text("Lorian & Lothric");
+	informationText = $("#pictureInfo").text("Lothric, Younger Prince is a Lord of Cinder and boss enemy in Dark Souls 3."
+      + " He is a purely magical boss and is a force to be reckoned with while he's accompanied by his brother and partner boss Lorian, Elder Prince."
+      + " While his magic makes for a challenging fight when synergized with his brother, he has only three attacks and is vulnerable alone.");
+	informationText.html(informationText.html().replace(/\n/g,'<br/>'));
+  }
+  if( $("#selectArt").val() == 4) {
+    $("#pictureName").text("Artorias");
+	informationText = $("#pictureInfo").text("Sir Artorias the Abysswalker was one of the Four Knights of Lord Gwyn. He only makes an appearance in the past, as he is deceased by the time the Chosen Undead escapes the Undead Asylum."
+      + " Knight Artorias wore distinctive armor, as well as the Wolf Ring, and brandished his Greatsword and Greatshield. He is known to have been a friend to Alvina of the Forest Hunter covenant. Sif,"
+	  + " the Great Grey Wolf was his companion, now guarding his grave and keeping the Covenant of Artorias ring in his possession.");
+	informationText.html(informationText.html().replace(/\n/g,'<br/>'));
+  }
+  if( $("#selectArt").val() == 5) {
+    $("#pictureName").text("Aldrich");
+	informationText = $("#pictureInfo").text("A former holy cleric, he began to have visions of an age of the deep sea, where the dregs of the human soul fall to the lowest depths,"
+      +	" and become the core components of the new world. From these visions, Aldrich was able to access a condensed, stagnated form of the Dark mightier than that of standard humanity,"
+      +	" which he named the Deep. But he eventually developed a tendency for cannibalism, and he took to the habit of consuming humans, which he took to with delight.");
+	informationText.html(informationText.html().replace(/\n/g,'<br/>'));
+  }
+  if( $("#selectArt").val() == 6) {
+    $("#pictureName").text("Sulyvahn");
+	informationText = $("#pictureInfo").text("Sulyvahn was born in the Painted World of Ariandel. Despite being born and raised inside the painting,"
+	  + " he had not yet experienced loss or despair as most residents of the painting do, which results in them being drawn into it. As such, he had no meaningful connection to it and he left the painting behind,"
+	  + " even forsaking the frost sorceries that his painted worlds had pioneered.");
+	informationText.html(informationText.html().replace(/\n/g,'<br/>'));
+  }
+  if( $("#selectArt").val() == 7) {
+    $("#pictureName").text("Nameless King");
+	informationText = $("#pictureInfo").text("The Nameless King was a dragon-slaying god of war in the Age of the Gods and heir to lightning, until he sacrificed everything to ally with the ancient dragons."
+	  + " He tamed a Stormdrake and formed a close bond with it, leading it to countless battles. Dragonslayer Ornstein, another relic of the Age of Gods,"
+	  + " left the ruined cathedral Anor Londo he once guarded in search of the Nameless King.");
+	informationText.html(informationText.html().replace(/\n/g,'<br/>'));
+  }
+});
+
+class artSpotLight {
+  constructor(x, z, spotLightIntensity, focusTarget, rx, rz) {
+    //spotlight
+    this.light = new THREE.SpotLight(0xcccccc); //ffbb00
+	this.light.intensity = spotLightIntensity;
+	this.light.position.set ( x, 120, z);
+	this.light.angle = 0.6;
+    this.light.penumbra = 0.4;
+	this.light.distance = 150;
+	this.light.decay = 1;
+	scene.add (this.light);
+	this.light.target = focusTarget;
+	//models
+	this.lightGroup = new THREE.Object3D();
+	let lampshade = new THREE.Mesh(new THREE.CylinderGeometry(2, 3, 6, 32, false, 0), new THREE.MeshPhongMaterial({
+      color: 0x333333,
+      side: THREE.DoubleSide
+    }));
+	lampshade.rotation.x = rx;
+	lampshade.rotation.z = rz;
+	let lampTop = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 0.5, 32), new THREE.MeshPhongMaterial({
+      color: 0x333333,
+      side: THREE.DoubleSide
+    }));
+	lampTop.position.y = 3;
+	lampshade.add(lampTop);
+	
+	this.lightGroup.add(lampshade);
+	this.lightGroup.position.set(x, 120, z);
+	scene.add (this.lightGroup);
+  }
+}
+
+init();
+animate();
+
+function init() {
+  scene = new THREE.Scene();
+  
+  ///////////////////////////////////////////////////////////
+  /*Camera*/
+  cameraArray[0] = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+  cameraArray[0].position.set(0, 300, 400);
+  cameraArray[0].lookAt(new THREE.Vector3(0, 0, 0));
+  
+  cameraArray[1] = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+  cameraArray[1].position.set(-205, 60, 70);
+  cameraArray[1].lookAt(new THREE.Vector3(-205, 60, 100));
+  
+  cameraArray[2] = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+  cameraArray[2].position.set(-200, 60, 70);
+  cameraArray[2].lookAt(new THREE.Vector3(-295, 60, 70));
+  
+  cameraArray[3] = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+  cameraArray[3].position.set(-205, 60, -70);
+  cameraArray[3].lookAt(new THREE.Vector3(-205, 60, -100));
+  
+  cameraArray[4] = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+  cameraArray[4].position.set(200, 60, -110);
+  cameraArray[4].lookAt(new THREE.Vector3(300, 60, -110));
+  
+  cameraArray[5] = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+  cameraArray[5].position.set(200, 60, 70);
+  cameraArray[5].lookAt(new THREE.Vector3(300, 60, 70));
+  
+  cameraArray[6] = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+  cameraArray[6].position.set(0, 60, 70);
+  cameraArray[6].lookAt(new THREE.Vector3(-295, 60, 70));
+  
+  cameraArray[7] = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+  cameraArray[7].position.set(-205, 60, 70);
+  cameraArray[7].lookAt(new THREE.Vector3(-111, 60, 70));
+  
+  cameraMonitor[0] = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+  cameraMonitor[0].position.set(-295, 100, -170);
+  cameraMonitor[0].lookAt(new THREE.Vector3(0, 100, 0)); 
+  
+  cameraMonitor[1] = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+  cameraMonitor[1].position.set(-100, 100, 170);
+  cameraMonitor[1].lookAt(new THREE.Vector3(0, 100, 0)); 
+  
+  cameraMonitor[2] = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+  cameraMonitor[2].position.set(70, 100, -130);
+  cameraMonitor[2].lookAt(new THREE.Vector3(200, 100, -40)); 
+  
+  ///////////////////////////////////////////////////////////
+  /*Renderer*/
+  renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  rendererM[0] = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  rendererM[1] = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  rendererM[2] = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  //main
+  var ww = $('#container').innerWidth();
+  var hh = $('#container').innerHeight();
+  renderer.setSize(ww, hh);
+  renderer.setClearColor(0x555555);
+  $('#container').append(renderer.domElement);
+  //monitorA
+  ww = $('#monitorA').innerWidth();
+  hh = $('#monitorA').innerHeight();
+  rendererM[0].setSize(ww, hh);
+  rendererM[0].setClearColor(0x555555);
+  $('#monitorA').append(rendererM[0].domElement);
+  //monitorB
+  ww = $('#monitorB').innerWidth();
+  hh = $('#monitorB').innerHeight();
+  rendererM[1].setSize(ww, hh);
+  rendererM[1].setClearColor(0x555555);
+  $('#monitorB').append(rendererM[1].domElement);
+  //monitorC
+  ww = $('#monitorC').innerWidth();
+  hh = $('#monitorC').innerHeight();
+  rendererM[2].setSize(ww, hh);
+  rendererM[2].setClearColor(0x555555);
+  $('#monitorC').append(rendererM[2].domElement);
+
+  let controls = new THREE.OrbitControls(cameraArray[0], renderer.domElement);
+
+  window.addEventListener('resize', onWindowResize, false);
+  window.addEventListener('mousedown', onDocumentMouseDown, false);
+  ///////////////////////////////////////////////////////////
+  /*Gallery*/
+  let loader = new THREE.TextureLoader();
+  loader.crossOrigin = '';
+  let texture = loader.load("https://i.imgur.com/hrvwCR5.jpg");
+  let floor = new THREE.Mesh(new THREE.BoxGeometry(600, 2, 354), new THREE.MeshPhongMaterial({
+    map: texture
+  }));
+  scene.add(floor);
+  floor.position.y = -1;
+  
+  let wall = new THREE.Mesh(new THREE.BoxGeometry(600, 120, 4), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(0, 60, 175);
+  wall = new THREE.Mesh(new THREE.BoxGeometry(4, 120, 350), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(298, 60, -2);
+  wall = new THREE.Mesh(new THREE.BoxGeometry(4, 120, 350), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(-298, 60, -2);
+  wall = new THREE.Mesh(new THREE.BoxGeometry(270, 120, 4), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(-161, 60, -175);
+  wall = new THREE.Mesh(new THREE.BoxGeometry(240, 120, 4), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(180, 60, -175);
+  wall = new THREE.Mesh(new THREE.BoxGeometry(4, 120, 220), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(-108, 60, 63);
+  wall = new THREE.Mesh(new THREE.BoxGeometry(4, 120, 130), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(62, 60, -108);
+  wall = new THREE.Mesh(new THREE.BoxGeometry(120, 120, 4), new THREE.MeshPhongMaterial());
+  scene.add(wall);
+  wall.position.set(236, 60, -45);
+  
+  let chair;
+  chair = new THREE.Mesh(new THREE.BoxGeometry(80, 30, 30), new THREE.MeshPhongMaterial({color:0x888888}));
+  scene.add(chair);
+  chair.position.set(-205, 15, 113);
+  chair = new THREE.Mesh(new THREE.BoxGeometry(30, 30, 80), new THREE.MeshPhongMaterial({color:0x888888}));
+  scene.add(chair);
+  chair.position.set(226, 15, 68);
+  
+  let lightBar = new THREE.Mesh(new THREE.BoxGeometry(600, 1, 1), new THREE.MeshPhongMaterial({color:0x222222}));
+  scene.add(lightBar);
+  lightBar.position.set(0, 124, 70);
+  lightBar = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 354), new THREE.MeshPhongMaterial({color:0x222222}));
+  scene.add(lightBar);
+  lightBar.position.set(-205, 124, 0);
+  lightBar = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 354), new THREE.MeshPhongMaterial({color:0x222222}));
+  scene.add(lightBar);
+  lightBar.position.set(250, 124, 0);
+  
+  ///////////////////////////////////////////////////////////
+  /*Light*/
+  //spotlight for art
+  let artTarget, targetNum = 7;
+  let targetPosX = [ 300, 300, -108, -300, -205, -205, -108];
+  let targetPosZ = [-110,  70,   70,   70,  177, -177,   70];
+  let spotLightPosX = [ 250, 250, -158, -250, -205, -205, -58];
+  let spotLightPosZ = [-110,  70,   70,   70, 127,  -127,  70];
+  let lampShadeRotX = [        0,         0,         0,         0, -Math.PI/4, Math.PI/4,          0];
+  let lampShadeRotZ = [Math.PI/4, Math.PI/4, Math.PI/4, -Math.PI/4,         0,         0, -Math.PI/4];
+  for(i = 0; i < targetNum; i++) {
+    artTarget = new THREE.Mesh (new THREE.SphereGeometry(5,20,20), new THREE.MeshBasicMaterial({color:'red'}));
+    artTarget.material.visible = false;
+	scene.add (artTarget);
+    artTarget.position.set (targetPosX[i], 65, targetPosZ[i]);
+    spotLightArray[i] = new artSpotLight(spotLightPosX[i], spotLightPosZ[i], 1.7,
+    	artTarget, lampShadeRotX[i], lampShadeRotZ[i]);
+  }
+  
+  //pointlight
+  let lightPosX = [0, -205, 205, 0, -205, 205];
+  let lightPosZ = [120, 120, 120, -120, -120, -120];
+  for(i = 0; i < 6; i++){
+    pointLightArray[i] = new THREE.PointLight(0xffffff, 0.4, 500);
+    pointLightArray[i].position.set(lightPosX[i], 220, lightPosZ[i]);
+    scene.add(pointLightArray[i]);
+  }
+  ///////////////////////////////////////////////////////////
+  /*Art*/
+  let artPosX = [-205, -295, -205, 295, 295, -105, -111];
+  let artPosY = [60, 60, 60, 60, 60, 60, 60];
+  let artPosZ = [172, 70, -172, -110, 70, 70, 70];
+  let artRotY = [Math.PI, Math.PI/2, 0, -Math.PI/2, -Math.PI/2, Math.PI/2, -Math.PI/2];
+  let artName = ['P001', 'P002', 'P003', 'P004', 'P005', 'P006', 'P007'];
+  let artPictures = ["https://i.imgur.com/tuIU2Yd.jpg",
+                     "https://i.imgur.com/4UVbRGA.jpg",
+					 "https://i.imgur.com/lXFDUxL.jpg",
+                     "https://i.imgur.com/GeFguaK.jpg",
+					 "https://i.imgur.com/IdEOCwD.jpg",
+                     "https://i.imgur.com/K73brAI.png",
+					 "https://i.imgur.com/CsmevpE.jpg"];
+					 //1 4 7 OK
+  for(i = 0; i < artPictures.length; i++) {
+    artArray[i] = loader.load (artPictures[i]);
+    frameArray[i] = new THREE.Mesh (new THREE.PlaneGeometry(70,80), new THREE.MeshPhongMaterial({map: artArray[i]}));
+    scene.add(frameArray[i]);
+    frameArray[i].rotation.y = artRotY[i];
+    frameArray[i].position.x = artPosX[i];
+    frameArray[i].position.y = artPosY[i];
+    frameArray[i].position.z = artPosZ[i];
+    frameArray[i].name = artName[i];
+  }
+  
+  for(i = 0; i < frameArray.length; i++)
+    pickables.push (frameArray[i]);
+}
+
+function onWindowResize() {
+  var ww = $('#container').innerWidth();
+  var hh = $('#container').innerHeight();
+  cameraArray[0].aspect = ww / hh;
+  cameraArray[0].updateProjectionMatrix();
+  renderer.setSize(ww, hh);
+  
+  ww = $('#monitorA').innerWidth();
+  hh = $('#monitorA').innerHeight();
+  cameraMonitor[0].aspect = ww / hh;
+  cameraMonitor[0].updateProjectionMatrix();
+  rendererM[0].setSize(ww, hh);
+  
+  ww = $('#monitorB').innerWidth();
+  hh = $('#monitorB').innerHeight();
+  cameraMonitor[1].aspect = ww / hh;
+  cameraMonitor[1].updateProjectionMatrix();
+  rendererM[1].setSize(ww, hh);
+  
+  ww = $('#monitorC').innerWidth();
+  hh = $('#monitorC').innerHeight();
+  cameraMonitor[2].aspect = ww / hh;
+  cameraMonitor[2].updateProjectionMatrix();
+  rendererM[2].setSize(ww, hh);
+}
+
+function onDocumentMouseDown(event) {
+  var viewportPos =$('#container').get(0).getBoundingClientRect(); 
+  mouse.x = ((event.clientX - viewportPos.left) / $('#container').innerWidth()) * 2 - 1;
+  mouse.y = -((event.clientY - viewportPos.top) / $('#container').innerHeight()) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, cameraArray[0]);
+  var intersects = raycaster.intersectObjects (pickables);
+  if (intersects.length > 0) {
+	if(intersects[0].object.name == "P001") {
+      $("#pictureName").text("Soul of Cinder");
+	  informationText = $("#pictureInfo").text("Soul of Cinder is a Boss enemy in Dark Souls 3."
+	    + " It is the Final Boss of Dark Souls 3."
+	    + " It is seen as the amalgamation of all the Lords of Cinder, with a variety of Dark Dialectics spells and movesets used during its first phase and the use of Gwyn's moveset for the second phase.");
+      informationText.html(informationText.html().replace(/\n/g,'<br/>'));
+    }
+	if(intersects[0].object.name == "P002") {
+      $("#pictureName").text("Ornstein");
+	  informationText = $("#pictureInfo").text("Ornstein is believed to be the captain of the Four Knights of Gwyn Lord of Cinder, alongside: Artorias the Abysswalker, "
+	    + " Lord's Blade Ciaran, and Hawkeye Gough. As his name would suggest, he was an honorary dragon slayer."
+        + " He wields his Dragonslayer Spear as well as the power of lightning, and was left behind with Smough to guard Anor Londo's cathedral, when the gods fled.");
+	  informationText.html(informationText.html().replace(/\n/g,'<br/>'));
+    }
+	if(intersects[0].object.name == "P003") {
+      $("#pictureName").text("Lorian & Lothric");
+	  informationText = $("#pictureInfo").text("Lothric, Younger Prince is a Lord of Cinder and boss enemy in Dark Souls 3."
+        + " He is a purely magical boss and is a force to be reckoned with while he's accompanied by his brother and partner boss Lorian, Elder Prince."
+        + " While his magic makes for a challenging fight when synergized with his brother, he has only three attacks and is vulnerable alone.");
+	  informationText.html(informationText.html().replace(/\n/g,'<br/>'));
+    }
+	if(intersects[0].object.name == "P004") {
+      $("#pictureName").text("Artorias");
+	  informationText = $("#pictureInfo").text("Sir Artorias the Abysswalker was one of the Four Knights of Lord Gwyn. He only makes an appearance in the past, as he is deceased by the time the Chosen Undead escapes the Undead Asylum."
+        + " Knight Artorias wore distinctive armor, as well as the Wolf Ring, and brandished his Greatsword and Greatshield. He is known to have been a friend to Alvina of the Forest Hunter covenant. Sif,"
+	    + " the Great Grey Wolf was his companion, now guarding his grave and keeping the Covenant of Artorias ring in his possession.");
+	  informationText.html(informationText.html().replace(/\n/g,'<br/>'));
+    }
+	if(intersects[0].object.name == "P005") {
+      $("#pictureName").text("Aldrich");
+	  informationText = $("#pictureInfo").text("A former holy cleric, he began to have visions of an age of the deep sea, where the dregs of the human soul fall to the lowest depths,"
+        +	" and become the core components of the new world. From these visions, Aldrich was able to access a condensed, stagnated form of the Dark mightier than that of standard humanity,"
+        +	" which he named the Deep. But he eventually developed a tendency for cannibalism, and he took to the habit of consuming humans, which he took to with delight.");
+	  informationText.html(informationText.html().replace(/\n/g,'<br/>'));
+    }
+	if(intersects[0].object.name == "P006") {
+      $("#pictureName").text("Sulyvahn");
+	  informationText = $("#pictureInfo").text("Sulyvahn was born in the Painted World of Ariandel. Despite being born and raised inside the painting,"
+	    + " he had not yet experienced loss or despair as most residents of the painting do, which results in them being drawn into it. As such, he had no meaningful connection to it and he left the painting behind,"
+	    + " even forsaking the frost sorceries that his painted worlds had pioneered.");
+	  informationText.html(informationText.html().replace(/\n/g,'<br/>'));
+    }
+	if(intersects[0].object.name == "P007") {
+      $("#pictureName").text("Nameless King");
+	  informationText = $("#pictureInfo").text("The Nameless King was a dragon-slaying god of war in the Age of the Gods and heir to lightning, until he sacrificed everything to ally with the ancient dragons."
+	    + " He tamed a Stormdrake and formed a close bond with it, leading it to countless battles. Dragonslayer Ornstein, another relic of the Age of Gods,"
+	    + " left the ruined cathedral Anor Londo he once guarded in search of the Nameless King.");
+	  informationText.html(informationText.html().replace(/\n/g,'<br/>'));
+    }
+  }
+}
+
+function keyframe(t) {
+  var s = ((t - ts) % T) / T;
+
+  for (var i = 1; i < keys.length; i++) {
+    if (keys[i][0] > s) break;
+  }
+  var ii = i - 1;
+  var a = (s - keys[ii][0]) / (keys[ii + 1][0] - keys[ii][0]);
+  intKey = keys[ii][1] * (1 - a) + keys[ii + 1][1] * a;
+	return intKey;
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  let nowCamera = cameraArray[useCamera];
+  renderer.render(scene, nowCamera);
+  
+  let intkey = keyframe(clock.getElapsedTime());
+  
+  cameraMonitor[0].rotation.y = intkey - 1.1;
+  rendererM[0].render(scene, cameraMonitor[0]);
+  cameraMonitor[1].rotation.y = intkey - 1.1;
+  rendererM[1].render(scene, cameraMonitor[1]);
+  cameraMonitor[2].rotation.y = intkey - 1.0;
+  rendererM[2].render(scene, cameraMonitor[2]);
+}
+</script>
+</body>
+
+</html>
