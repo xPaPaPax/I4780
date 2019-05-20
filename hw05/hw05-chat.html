@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Homework05</title>
+	
+	<center><font size="4"><h1 id='title'>
+	</h1></font></center>
+	<hr>
+	<div style="position:absolute;right:10px;">
+      MessageSound: <input id="msgSound" type="checkbox" checked />
+	</div>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      form { background: #000000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #dddddd; }
+      #messages { margin-bottom: 40px }
+    </style>
+  </head>
+  <body>
+    <center><p id="online"></p></center>	
+    <ul id="messages"></ul>
+    <form action="">
+      <input id="m" autocomplete="off" placeholder="輸入聊天訊息..."/><button>Send</button>
+    </form>
+    <!--script src="https://cdn.socket.io/socket.io-1.2.0.js"></script-->
+	<!--script src="node_modules/socket.io-client/dist/socket.io.js"></script-->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+	<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+	
+	<script>
+      $(function () {
+	    var olS, msgS, warS;
+        var socket = io();
+		let myName = document.location.search.match(/\?name=(.+)/)[1];
+		$('#title').text ('Hi, ' + myName);
+		
+		olS = new Audio('http://k007.kiwi6.com/hotlink/23711jooip/online.wav');
+	    msgS = new Audio('http://k007.kiwi6.com/hotlink/tjwcg9xona/message.wav');
+	    warS = new Audio('http://k007.kiwi6.com/hotlink/1jwyy6wfdi/warning.wav');
+		
+        $('form').submit(function(){
+		  if($('#m').val() != "") {
+            socket.emit('chat message', $('#m').val(), myName);
+            $('#m').val('');
+		  }
+		  else {
+		    warS.play();
+		    alert("訊息不可空白");
+		  }
+          return false;
+        });
+		//上線通知
+		socket.emit('login', myName);
+		socket.on('login', function(name, onlineUsers){
+		  $('#online').text("聊天室人數: " + onlineUsers + " 人");
+		    
+		  if(myName == name)
+		    $('#messages').append($('<li>').text("成功進入聊天室!"));
+		  else {
+            $('#messages').append($('<li>').text("一位新朋友: " + name + " 加了進來!"));
+            olS.play();
+		  }
+		  window.scrollTo(0, document.body.scrollHeight);
+        });
+		//離線通知
+		socket.on('disconnect', function (onlineUsers) {
+		  $('#online').text("聊天室人數: " + onlineUsers + " 人");
+		  $('#messages').append($('<li>').text("有一位朋友離開了聊天室.."));
+		});
+		//訊息傳送
+        socket.on('chat message', function(msg, name){
+		  if($("#msgSound").prop("checked")) {
+		    if(name != myName)
+			  msgS.play();
+		  }
+          $('#messages').append($('<li>').text(name + ": " + msg));
+          window.scrollTo(0, document.body.scrollHeight);
+        });
+      });
+    </script>
+  </body>
+</html>
